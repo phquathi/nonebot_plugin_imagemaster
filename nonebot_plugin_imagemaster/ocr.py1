@@ -1,0 +1,27 @@
+import cv2
+import numpy as np
+import easyocr
+
+
+def extract_text(image_data):
+    """
+    :param image_data: 图像的二进制数据。
+    :return: 提取到的文本。
+    """
+    nparr = np.frombuffer(image_data, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    reader = easyocr.Reader(['ch_sim', 'en'])  # 中英文
+    result = reader.readtext(img, detail=0)
+
+    extracted_text = "\n".join(result)
+    return extracted_text
+
+
+# if __name__ == "__main__":
+#     image_file_name = "ocr_test.png"
+#
+#     with open(image_file_name, 'rb') as image_file:
+#         image_data = image_file.read()
+#         extracted_text = extract_text(image_data)
+#         print(extracted_text)

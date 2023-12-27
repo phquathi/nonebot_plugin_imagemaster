@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "nonebot-plugin-imagemaster"
+version = "1.0.0"
+description = "提供多种图像处理功能的bot插件"
+authors = ["phquathi <yangziqi233@gmail.com>"]
+readme = "README.md"  # 指定README文件
+
+[tool.poetry.dependencies]
+python = "^3.7"
+nonebot = "^2.0.0"
+opencv-python = "^4.5"
+requests = "^2.25"
+numpy = "^1.20"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
