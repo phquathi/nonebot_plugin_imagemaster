@@ -21,9 +21,8 @@ async def handle_image(bot: Bot, event: Event, state: T_State):
     for msg_segment in message:
         if msg_segment.type == "image":
             image_url = msg_segment.data['url']
-            # 使用httpx.get同步请求
-            with httpx.Client() as client:
-                response = client.get(image_url)
+            async with httpx.AsyncClient() as client:
+                response = await client.get(image_url)
                 state["image_data"] = response.content
             await image_process.send(MessageSegment.image(f"file:///{image_path}"))
             return
@@ -52,8 +51,8 @@ async def handle_image_crop(bot: Bot, event: Event, state: T_State):
     for msg_segment in message:
         if msg_segment.type == "image":
             image_url = msg_segment.data['url']
-            with httpx.Client() as client:
-                response = client.get(image_url)
+            async with httpx.AsyncClient() as client:
+                response = await client.get(image_url)
                 state["image_data"] = response.content
             return
     await image_crop.reject("未检测到图片，请重新发送图片")
