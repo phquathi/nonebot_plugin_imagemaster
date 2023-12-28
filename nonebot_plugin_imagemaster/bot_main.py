@@ -1,9 +1,10 @@
 import os
+
+import httpx
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import Message, MessageSegment, Bot, Event
 from nonebot.typing import T_State
 from nonebot.rule import to_me
-import requests
 
 from .image_editor import apply_filter, crop_image
 
@@ -20,7 +21,10 @@ async def handle_image(bot: Bot, event: Event, state: T_State):
     for msg_segment in message:
         if msg_segment.type == "image":
             image_url = msg_segment.data['url']
-            state["image_data"] = requests.get(image_url).content
+            # 使用httpx.get同步请求
+            with httpx.Client() as client:
+                response = client.get(image_url)
+                state["image_data"] = response.content
             await image_process.send(MessageSegment.image(f"file:///{image_path}"))
             return
     await image_process.reject("未检测到图片，请重新发送图片")
@@ -48,7 +52,9 @@ async def handle_image_crop(bot: Bot, event: Event, state: T_State):
     for msg_segment in message:
         if msg_segment.type == "image":
             image_url = msg_segment.data['url']
-            state["image_data"] = requests.get(image_url).content
+            with httpx.Client() as client:
+                response = client.get(image_url)
+                state["image_data"] = response.content
             return
     await image_crop.reject("未检测到图片，请重新发送图片")
 
@@ -64,7 +70,6 @@ async def handle_command_crop(bot: Bot, event: Event, state: T_State):
         await image_crop.send("图片裁剪完成。")
     except Exception as e:
         await image_crop.finish(f"裁剪图片时出现错误: {str(e)}")
-
 
 # 文字识别
 # text_extraction = on_command("文字提取", rule=to_me(), priority=2)
