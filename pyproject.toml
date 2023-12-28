@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot-plugin-imagemaster"
-version = "1.0.4"
+version = "1.0.5"
 description = "提供多种图像处理功能的bot插件"
 authors = ["phquathi <yangziqi233@gmail.com>"]
 readme = "README.md"
