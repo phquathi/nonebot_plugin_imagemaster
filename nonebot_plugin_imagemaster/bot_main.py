@@ -84,10 +84,10 @@ async def handle_command_crop(bot: Bot, event: Event, state: T_State):
 #             image_url = msg_segment.data['url']
 #             image_data = requests.get(image_url).content
 #
-#             # 使用线程池来运行同步的OCR任务
+#
 #             with ThreadPoolExecutor() as pool:
 #                 try:
-#                     # 使用全局线程池
+#
 #                     extracted_text = await asyncio.get_event_loop().run_in_executor(
 #                         executor, lambda: extract_text(image_data)
 #                     )
