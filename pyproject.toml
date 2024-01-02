@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot-plugin-imagemaster"
-version = "1.0.5"
+version = "1.0.6"
 description = "提供多种图像处理功能的bot插件"
 authors = ["phquathi <yangziqi233@gmail.com>"]
 readme = "README.md"
@@ -11,6 +11,7 @@ nonebot2 = "^2.0.0"
 opencv-python = "^4.0.0"
 httpx = "^0.24.0"
 numpy = "^1.0.0"
+Pillow = "^8.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
