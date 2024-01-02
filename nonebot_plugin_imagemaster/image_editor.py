@@ -1,7 +1,12 @@
 import cv2
 import numpy as np
 from io import BytesIO
+from PIL import Image, ImageDraw, ImageFont
+import os
 from nonebot.adapters.onebot.v11 import MessageSegment
+
+current_directory = os.path.dirname(os.path.abspath(__file__))
+font_path = os.path.join(current_directory, 'songti.ttf')
 
 
 def apply_filter(image_data, filter_type):
@@ -107,7 +112,6 @@ def extract_foreground(image):
 
 
 def tint_image(img, tint):
-
     tint_array = np.array(tint, dtype=np.float32).reshape(1, 1, 3)
 
     img_float = img.astype(np.float32)
@@ -117,3 +121,71 @@ def tint_image(img, tint):
     img_tinted = np.clip(img_tinted, 0, 255).astype(np.uint8)
 
     return img_tinted
+
+
+def stitch_images(image_list):
+    decoded_images = [cv2.imdecode(np.frombuffer(img_data, np.uint8), cv2.IMREAD_COLOR) for img_data in image_list]
+
+    # 获取所有图像的高度和宽度
+    widths, heights = zip(*(img.shape[1::-1] for img in decoded_images))
+
+    images_per_row = 3
+    num_rows = (len(decoded_images) + images_per_row - 1) // images_per_row
+
+    # 总宽度和高度
+    max_width_per_row = sum(sorted(widths, reverse=True)[:images_per_row])
+    max_height_per_image = max(heights)
+    total_width = max_width_per_row
+    total_height = max_height_per_image * num_rows
+
+    stitched_image = np.zeros((total_height, total_width, 3), dtype=np.uint8)
+    stitched_image.fill(255)  # 白色背景
+
+    current_x = 0
+    current_y = 0
+    for i, img in enumerate(decoded_images):
+        h, w = img.shape[:2]
+        if i % images_per_row == 0 and i != 0:
+            current_y += max_height_per_image
+            current_x = 0
+        stitched_image[current_y:current_y + h, current_x:current_x + w] = img
+        current_x += w
+
+    _, buffer = cv2.imencode('.jpg', stitched_image)
+    img_bytes = BytesIO(buffer)
+    return MessageSegment.image(img_bytes)
+
+
+def add_text_to_image(image_data, text):
+    img = Image.open(BytesIO(image_data))
+
+    # 计算合适字体大小
+    img_width, img_height = img.size
+    font_size = img_width // len(text)
+    font_size = max(min(font_size, 120), 20)
+
+    font = ImageFont.truetype(font_path, font_size)
+
+    draw = ImageDraw.Draw(img)
+
+    # 阴影效果
+    shadowcolor = "black"
+
+    # 文字居中
+    text_width, text_height = draw.textsize(text, font=font)
+    x = (img_width - text_width) / 2
+    y = (img_height - text_height) / 2 + img_height // 4
+
+    # 文字阴影
+    draw.text((x-1, y-1), text, font=font, fill=shadowcolor)
+    draw.text((x+1, y-1), text, font=font, fill=shadowcolor)
+    draw.text((x-1, y+1), text, font=font, fill=shadowcolor)
+    draw.text((x+1, y+1), text, font=font, fill=shadowcolor)
+
+    draw.text((x, y), text, font=font, fill="white")
+
+    img_cv = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+
+    _, buffer = cv2.imencode('.jpg', img_cv)
+    img_bytes = BytesIO(buffer)
+    return MessageSegment.image(img_bytes)
