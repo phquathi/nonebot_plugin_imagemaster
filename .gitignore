@@ -150,3 +150,4 @@ Thumbs.db
 nonebot_plugin_antimonkey/__pycache__/
 nonebot_plugin_antimonkey/.mypy_cache/
 nonebot_plugin_antimonkey/.pytest_cache/
+/dist/
