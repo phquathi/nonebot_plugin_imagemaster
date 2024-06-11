@@ -3,17 +3,12 @@ import numpy as np
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 import os
-from nonebot.adapters.onebot.v11 import MessageSegment
 
 current_directory = os.path.dirname(os.path.abspath(__file__))
 font_path = os.path.join(current_directory, 'songti.ttf')
 
 
 def apply_filter(image_data, filter_type):
-    """
-    :param image_data: 接收到的图像数据。
-    :param filter_type: 要应用的滤镜类型。
-    """
     nparr = np.frombuffer(image_data, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
@@ -43,10 +38,8 @@ def apply_filter(image_data, filter_type):
         img = cv2.bitwise_not(img)
     elif filter_type == "胶片颗粒":
         img_float = img.astype(np.float32)
-        # 生成噪声
         noise = np.random.randint(0, 5, img.shape, dtype='uint8')
         img_noisy = cv2.add(img_float, noise.astype(np.float32))
-        # 换回uint8
         img = np.clip(img_noisy, 0, 255).astype(np.uint8)
     elif filter_type in ["微红", "暖橙", "柔黄", "奶绿", "微蓝", "清靛", "幽紫"]:
         tints = {
@@ -60,14 +53,12 @@ def apply_filter(image_data, filter_type):
         }
         img = tint_image(img, tints[filter_type])
     elif filter_type == "马赛克":
-        # 对整个图像应用马赛克
         img = apply_mosaic(img, 0, 0, img.shape[1], img.shape[0], 10)
     elif filter_type == "前景提取":
         img = extract_foreground(img)
 
     _, buffer = cv2.imencode('.jpg', img)
-    img_bytes = BytesIO(buffer)
-    return MessageSegment.image(img_bytes)
+    return buffer.tobytes()
 
 
 def crop_image(image_data, direction):
@@ -85,8 +76,7 @@ def crop_image(image_data, direction):
         img = img[:, w // 2:]
 
     _, buffer = cv2.imencode('.jpg', img)
-    img_bytes = BytesIO(buffer)
-    return MessageSegment.image(img_bytes)
+    return buffer.tobytes()
 
 
 def apply_mosaic(img, x, y, width, height, mosaic_size):
@@ -126,20 +116,18 @@ def tint_image(img, tint):
 def stitch_images(image_list):
     decoded_images = [cv2.imdecode(np.frombuffer(img_data, np.uint8), cv2.IMREAD_COLOR) for img_data in image_list]
 
-    # 获取所有图像的高度和宽度
     widths, heights = zip(*(img.shape[1::-1] for img in decoded_images))
 
     images_per_row = 3
     num_rows = (len(decoded_images) + images_per_row - 1) // images_per_row
 
-    # 总宽度和高度
     max_width_per_row = sum(sorted(widths, reverse=True)[:images_per_row])
     max_height_per_image = max(heights)
     total_width = max_width_per_row
     total_height = max_height_per_image * num_rows
 
     stitched_image = np.zeros((total_height, total_width, 3), dtype=np.uint8)
-    stitched_image.fill(255)  # 白色背景
+    stitched_image.fill(255)
 
     current_x = 0
     current_y = 0
@@ -152,8 +140,7 @@ def stitch_images(image_list):
         current_x += w
 
     _, buffer = cv2.imencode('.jpg', stitched_image)
-    img_bytes = BytesIO(buffer)
-    return MessageSegment.image(img_bytes)
+    return buffer.tobytes()
 
 
 def add_text_to_image(image_data, text):
@@ -172,7 +159,9 @@ def add_text_to_image(image_data, text):
     shadowcolor = "black"
 
     # 文字居中
-    text_width, text_height = draw.textsize(text, font=font)
+    text_bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = text_bbox[2] - text_bbox[0]
+    text_height = text_bbox[3] - text_bbox[1]
     x = (img_width - text_width) / 2
     y = (img_height - text_height) / 2 + img_height // 4
 
@@ -187,5 +176,4 @@ def add_text_to_image(image_data, text):
     img_cv = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
 
     _, buffer = cv2.imencode('.jpg', img_cv)
-    img_bytes = BytesIO(buffer)
-    return MessageSegment.image(img_bytes)
+    return buffer.tobytes()
