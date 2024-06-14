@@ -9,13 +9,16 @@
 ## 安装
 使用nb-cli进行安装
 
-``nb plugin install nonebot-plugin-imagemaster``
-
-
+```
+nb plugin install nonebot-plugin-imagemaster
+```
 
 使用pip进行安装
 
-``pip install nonebot-plugin-imagemaster``
+```
+pip install nonebot-plugin-imagemaster
+```
+
 ## 使用
 
 | 指令            | 描述           | 
@@ -58,9 +61,9 @@
 
    ![pc2](src/2.png)
 
-   ​	(2). 安卓端**（最新版qq已不支持此特性，拼接功能只能使用pc端实现）**
+   ​	(2). 移动端 **（最新版手机qq已不支持此特性，拼接功能只能使用pc端实现）**
 
-   ​			在安卓端的操作较复杂一点，并且必须为**非简洁模式**才能合并多张图片为一条消息，简洁模式无法实现
+   ​			在移动端的操作较复杂一点，并且必须为**非简洁模式**才能合并多张图片为一条消息，简洁模式无法实现
 
    ​			首先在文本框里**打入一个空格**，后再选择图片
 
